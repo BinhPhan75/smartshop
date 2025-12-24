@@ -1,0 +1,7 @@
+{
+  "name": "SmartShop - Quản lý Kho Thông Minh",
+  "description": "Ứng dụng quản lý sản phẩm chuyên nghiệp với tính năng nhận diện sản phẩm bằng Camera (Visual Search) sử dụng AI Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
