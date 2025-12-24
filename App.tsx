@@ -252,16 +252,21 @@ const App: React.FC = () => {
                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                    BÁO CÁO KINH DOANH
                 </h2>
-                <div className="grid grid-cols-2 gap-4 mb-6 bg-slate-50 p-5 rounded-3xl border border-slate-100">
+                <div className="grid grid-cols-2 gap-4 mb-4 bg-slate-50 p-5 rounded-3xl border border-slate-100">
                   <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Từ ngày</label><input type="date" value={reportFrom} onChange={e => setReportFrom(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
                   <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Đến ngày</label><input type="date" value={reportTo} onChange={e => setReportTo(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
                 </div>
-                <div className="space-y-3 mb-8">
+                
+                <div className="grid grid-cols-1 gap-4 mb-8">
+                   <div className="relative group">
+                     <input type="text" placeholder="Tìm tên khách hàng hoặc CCCD..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
+                   </div>
                    <select value={productFilterId} onChange={e => setProductFilterId(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs appearance-none">
                       <option value="">Tất cả mặt hàng</option>
                       {soldProductsList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                    </select>
                 </div>
+
                 <div className="grid grid-cols-1 gap-4 mb-8">
                   <div className="p-7 bg-slate-900 rounded-[2rem] text-white shadow-xl">
                     <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">TỔNG DOANH THU</p>
@@ -272,6 +277,32 @@ const App: React.FC = () => {
                       <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒ</p>
                       <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
                     </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">DANH SÁCH GIAO DỊCH ({reportData.count})</h3>
+                  {reportData.sales.length === 0 ? (
+                    <div className="text-center py-10 opacity-20 font-black text-[10px] uppercase">Không có giao dịch nào</div>
+                  ) : (
+                    reportData.sales.map(s => (
+                      <div key={s.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-3 shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-black text-slate-800 text-[11px] uppercase leading-tight">{s.productName}</h4>
+                            <p className="text-[9px] text-slate-400 font-bold mt-1">{new Date(s.timestamp).toLocaleString('vi-VN')}</p>
+                          </div>
+                          <span className="text-indigo-600 font-black text-xs">{formatCurrency(s.totalAmount)}</span>
+                        </div>
+                        <div className="flex justify-between items-end border-t border-slate-200/50 pt-2">
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-[8px] font-black text-slate-400 uppercase">Khách hàng: <span className="text-slate-600">{s.customer?.fullName || "Khách lẻ"}</span></p>
+                            {s.customer?.idCard && <p className="text-[8px] font-black text-slate-400 uppercase">CCCD: <span className="text-slate-600">{s.customer.idCard}</span></p>}
+                          </div>
+                          <p className="text-[9px] font-black text-slate-500">Số lượng: <span className="bg-white px-2 py-0.5 rounded-full border border-slate-200">{s.quantity}</span></p>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
              </div>
