@@ -2,6 +2,7 @@
 export interface Product {
   id: string;
   name: string;
+  brand: string;
   description: string;
   purchasePrice: number;
   sellingPrice: number;
@@ -35,5 +36,6 @@ export interface ScanResult {
   productId: string | null;
   confidence: number;
   suggestedName?: string;
+  brand?: string;
   description?: string;
 }

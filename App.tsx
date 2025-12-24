@@ -7,7 +7,6 @@ import { searchProductByImage } from './geminiService';
 import { 
   saveProductsToDB, 
   getProductsFromDB, 
-  calculateStorageSize, 
   saveSaleToDB, 
   getSalesFromDB, 
   saveAllSalesToDB,
@@ -35,14 +34,12 @@ const App: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
   
-  // Bán hàng
   const [isSelling, setIsSelling] = useState(false);
   const [sellQuantity, setSellQuantity] = useState(1);
   const [customer, setCustomer] = useState<CustomerInfo>({ fullName: '', address: '', idCard: '' });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Báo cáo
   const now = new Date();
   const [reportFrom, setReportFrom] = useState(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
   const [reportTo, setReportTo] = useState(now.toISOString().split('T')[0]);
@@ -64,7 +61,6 @@ const App: React.FC = () => {
     loadData();
   }, []);
 
-  // Sync Debounce Logic
   const syncTimeoutRef = useRef<any>(null);
   useEffect(() => {
     if (!isLoading) {
@@ -85,7 +81,9 @@ const App: React.FC = () => {
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return products;
     const q = removeAccents(searchQuery);
-    return products.filter(p => removeAccents(`${p.name} ${p.id}`).includes(q));
+    return products.filter(p => 
+      removeAccents(`${p.name} ${p.id} ${p.brand || ''}`).includes(q)
+    );
   }, [products, searchQuery]);
 
   const soldProductsList = useMemo(() => {
@@ -97,9 +95,7 @@ const App: React.FC = () => {
   const reportData = useMemo(() => {
     const start = new Date(reportFrom); start.setHours(0, 0, 0, 0);
     const end = new Date(reportTo); end.setHours(23, 59, 59, 999);
-    
     let filtered = sales.filter(s => s.timestamp >= start.getTime() && s.timestamp <= end.getTime());
-    
     if (customerSearchQuery.trim()) {
       const cq = removeAccents(customerSearchQuery);
       filtered = filtered.filter(s => 
@@ -107,18 +103,12 @@ const App: React.FC = () => {
         (s.customer?.idCard && removeAccents(s.customer.idCard).includes(cq))
       );
     }
-
     if (productFilterId) filtered = filtered.filter(s => s.productId === productFilterId);
-
     const revenue = filtered.reduce((acc, s) => acc + (Number(s.totalAmount) || 0), 0);
     const cost = filtered.reduce((acc, s) => acc + ((Number(s.purchasePrice) || 0) * (Number(s.quantity) || 0)), 0);
-    
     return {
       sales: filtered.sort((a, b) => b.timestamp - a.timestamp),
-      revenue, 
-      cost,
-      profit: revenue - cost, 
-      count: filtered.length
+      revenue, cost, profit: revenue - cost, count: filtered.length
     };
   }, [sales, reportFrom, reportTo, customerSearchQuery, productFilterId]);
 
@@ -131,7 +121,6 @@ const App: React.FC = () => {
   const handleConfirmSale = () => {
     if (!selectedProduct) return;
     if (!customer.fullName.trim()) return alert("Vui lòng nhập tên khách hàng.");
-
     const newSale: Sale = {
       id: crypto.randomUUID(),
       productId: selectedProduct.id,
@@ -143,11 +132,9 @@ const App: React.FC = () => {
       timestamp: Date.now(),
       customer: { ...customer }
     };
-
-    saveSaleToDB(newSale); // Sync single sale to DB
+    saveSaleToDB(newSale); 
     setSales(prev => [newSale, ...prev]);
     setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, stock: p.stock - sellQuantity } : p));
-    
     setIsSelling(false);
     setCustomer({ fullName: '', address: '', idCard: '' });
     alert("Giao dịch thành công!");
@@ -200,7 +187,7 @@ const App: React.FC = () => {
         {view === 'dashboard' && (
           <>
             <div className="relative group">
-              <input type="text" placeholder="Tìm tên hoặc mã hàng..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full p-4 pl-12 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium transition-all" />
+              <input type="text" placeholder="Tìm tên, thương hiệu hoặc mã..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full p-4 pl-12 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium transition-all" />
               <svg className="w-5 h-5 absolute left-4 top-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
             
@@ -228,7 +215,10 @@ const App: React.FC = () => {
                   <div onClick={() => { setSelectedProduct(p); setView('detail'); }} className="flex flex-1 items-center space-x-4 cursor-pointer min-w-0">
                     <img src={p.imageUrl} className="w-16 h-16 rounded-[1.25rem] object-cover bg-slate-50 group-hover:scale-105 transition-transform" />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-slate-800 uppercase text-[11px] truncate leading-none mb-1.5">{p.name}</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                         <h4 className="font-black text-slate-800 uppercase text-[11px] truncate leading-none">{p.name}</h4>
+                         {p.brand && <span className="text-[7px] bg-indigo-50 text-indigo-400 px-1.5 py-0.5 rounded font-black uppercase whitespace-nowrap">{p.brand}</span>}
+                      </div>
                       <div className="flex flex-col gap-0.5">
                         {role === 'admin' && (
                           <p className="text-[8px] font-bold text-slate-400 uppercase">Vốn: <span className="text-slate-600 font-black">{formatCurrency(p.purchasePrice)}</span></p>
@@ -256,20 +246,16 @@ const App: React.FC = () => {
                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                    BÁO CÁO KINH DOANH
                 </h2>
-                
                 <div className="grid grid-cols-2 gap-4 mb-6 bg-slate-50 p-5 rounded-3xl border border-slate-100">
                   <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Từ ngày</label><input type="date" value={reportFrom} onChange={e => setReportFrom(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
                   <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Đến ngày</label><input type="date" value={reportTo} onChange={e => setReportTo(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
                 </div>
-
                 <div className="space-y-3 mb-8">
                    <select value={productFilterId} onChange={e => setProductFilterId(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs appearance-none">
                       <option value="">Tất cả mặt hàng</option>
                       {soldProductsList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                    </select>
-                   <input type="text" placeholder="Tìm theo tên khách hàng..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 bg-indigo-50/30 border border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
                 </div>
-
                 <div className="grid grid-cols-1 gap-4 mb-8">
                   <div className="p-7 bg-slate-900 rounded-[2rem] text-white shadow-xl">
                     <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">TỔNG DOANH THU</p>
@@ -282,78 +268,27 @@ const App: React.FC = () => {
                     </div>
                   )}
                 </div>
-
-                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                   {reportData.sales.length === 0 ? (
-                      <p className="text-center py-10 text-[10px] font-black text-slate-200 uppercase tracking-widest">Không có giao dịch</p>
-                   ) : reportData.sales.map(s => (
-                    <div key={s.id} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col gap-1.5 active:bg-slate-100 transition-colors">
-                       <div className="flex justify-between items-start">
-                          <p className="font-black text-slate-800 uppercase text-[10px] truncate max-w-[180px]">{s.productName}</p>
-                          <p className="font-black text-indigo-600 text-xs">{formatCurrency(s.totalAmount)}</p>
-                       </div>
-                       <div className="flex justify-between items-center text-[8px] font-bold">
-                          <span className="text-slate-400 uppercase bg-white px-2 py-0.5 rounded-full shadow-sm">{new Date(s.timestamp).toLocaleDateString()} • {s.quantity} SP</span>
-                          <span className="text-slate-900 bg-indigo-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">{s.customer?.fullName || "K.LẺ"}</span>
-                       </div>
-                    </div>
-                   ))}
-                </div>
              </div>
           </div>
         )}
 
         {view === 'settings' && (
-          <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 space-y-10 animate-in slide-in-from-bottom-10 duration-500">
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl border border-slate-100 space-y-10">
              <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">HỆ THỐNG</h2>
-             
              <section className="space-y-5">
                 <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">CẤP BẬC TRUY CẬP</h3>
                 <div className="grid grid-cols-2 gap-4">
-                   <button onClick={() => { setRole('user'); localStorage.setItem('userRole', 'user'); setView('dashboard'); }} className={`py-5 rounded-2xl font-black text-[10px] uppercase border transition-all active:scale-95 ${role === 'user' ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'bg-white text-slate-300 border-slate-100'}`}>NHÂN VIÊN</button>
-                   <button onClick={() => { if(role !== 'admin') setShowLoginModal(true); }} className={`py-5 rounded-2xl font-black text-[10px] uppercase border transition-all active:scale-95 ${role === 'admin' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' : 'bg-white text-slate-300 border-slate-100'}`}>QUẢN TRỊ</button>
+                   <button onClick={() => { setRole('user'); localStorage.setItem('userRole', 'user'); setView('dashboard'); }} className={`py-5 rounded-2xl font-black text-[10px] uppercase border transition-all ${role === 'user' ? 'bg-slate-900 text-white shadow-xl' : 'bg-white text-slate-300 border-slate-100'}`}>NHÂN VIÊN</button>
+                   <button onClick={() => { if(role !== 'admin') setShowLoginModal(true); }} className={`py-5 rounded-2xl font-black text-[10px] uppercase border transition-all ${role === 'admin' ? 'bg-indigo-600 text-white shadow-xl' : 'bg-white text-slate-300 border-slate-100'}`}>QUẢN TRỊ</button>
                 </div>
              </section>
-
              {role === 'admin' && (
-               <section className="space-y-5 pt-8 border-t border-slate-100 animate-in fade-in duration-1000">
-                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">QUẢN TRỊ DỮ LIỆU</h3>
-                  <div className="space-y-4">
-                    <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeWidth="2.5"></path></svg>
-                      XUẤT FILE SAO LƯU (.JSON)
-                    </button>
-                    
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full py-5 bg-white border-2 border-indigo-100 text-indigo-600 rounded-2xl font-black text-[11px] uppercase active:scale-95 transition-all hover:bg-indigo-50">
-                      KHÔI PHỤC TỪ FILE
-                    </button>
-                    <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={(e) => {
-                       const file = e.target.files?.[0];
-                       if (!file) return;
-                       const reader = new FileReader();
-                       reader.onload = (ev) => {
-                         try {
-                           const data = JSON.parse(ev.target?.result as string);
-                           if (data.products && data.sales) {
-                             setProducts(data.products);
-                             setSales(data.sales);
-                             alert("Dữ liệu đã được khôi phục thành công!");
-                           }
-                         } catch (err) { alert("File sao lưu không hợp lệ!"); }
-                       };
-                       reader.readAsText(file);
-                    }} />
-                  </div>
-               </section>
+               <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl">
+                 XUẤT FILE SAO LƯU (.JSON)
+               </button>
              )}
           </div>
         )}
-
-        <div className="text-center pt-16 pb-6">
-           <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] opacity-40">
-             SmartShop • Bản quyền thuộc về binhphan
-           </p>
-        </div>
       </main>
 
       {/* Nav Bottom */}
@@ -363,56 +298,83 @@ const App: React.FC = () => {
             <button onClick={() => setView('reports')} className={`flex flex-col items-center gap-1.5 transition-colors ${view === 'reports' ? 'text-indigo-600' : 'text-slate-300'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span className="text-[8px] font-black uppercase tracking-tighter">BÁO CÁO</span></button>
             <div className="w-14"></div>
             <button onClick={() => setView('settings')} className={`flex flex-col items-center gap-1.5 transition-colors ${view === 'settings' ? 'text-indigo-600' : 'text-slate-300'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg><span className="text-[8px] font-black uppercase tracking-tighter">HỆ THỐNG</span></button>
-            
-            {/* Scan Button Center */}
             <button onClick={() => setIsScanning(true)} className="absolute left-1/2 -translate-x-1/2 -top-10 w-22 h-22 bg-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl border-[10px] border-slate-50 active:scale-90 transition-all z-40">
                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
             </button>
         </nav>
       )}
 
-      {/* BÁN HÀNG MODAL */}
-      {isSelling && selectedProduct && (
-        <div className="fixed inset-0 z-[1000] bg-slate-900/90 flex items-center justify-center p-6 backdrop-blur-md">
-            <div className="bg-white w-full max-w-sm rounded-[3rem] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-300 shadow-2xl">
-                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                   <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400">BÁN HÀNG</h3>
-                   <button onClick={() => setIsSelling(false)} className="text-slate-300 p-2 hover:text-red-500 transition-colors"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      {/* VIEW DETAIL */}
+      {view === 'detail' && selectedProduct && (
+        <div className="p-5 animate-in slide-in-from-bottom-10 duration-500 max-w-lg mx-auto">
+           <div className="bg-white rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100">
+              <div className="relative h-80 overflow-hidden">
+                <img src={selectedProduct.imageUrl} className="w-full h-full object-cover" />
+                <button onClick={() => setView('dashboard')} className="absolute top-8 left-8 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl active:scale-90 transition-transform"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+              </div>
+              <div className="p-10 -mt-8 relative bg-white rounded-t-[3rem] space-y-8">
+                <div className="space-y-2 text-center">
+                   <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">THÔNG TIN CHI TIẾT</p>
+                   <h2 className="text-2xl font-black uppercase text-slate-900 leading-tight">{selectedProduct.name}</h2>
                 </div>
-                <div className="p-8 space-y-8 text-center">
-                    <div className="space-y-2">
-                       <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">SẢN PHẨM</p>
-                       <h4 className="text-lg font-black uppercase text-slate-900 leading-tight">{selectedProduct.name}</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Thương hiệu - Grid 1: Auto-shrink font */}
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">THƯƠNG HIỆU</p>
+                    <div className="flex items-center justify-center min-w-0">
+                        <p className={`font-black text-slate-800 whitespace-nowrap leading-none transition-all text-center ${
+                          (selectedProduct.brand || "KHÁC").length > 18 ? 'text-[9px]' : 
+                          (selectedProduct.brand || "KHÁC").length > 14 ? 'text-xs' : 
+                          (selectedProduct.brand || "KHÁC").length > 10 ? 'text-sm' : 'text-lg'
+                        }`}>
+                          {selectedProduct.brand || "CHƯA RÕ"}
+                        </p>
                     </div>
-                    
-                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex flex-col items-center">
-                        <div className="flex items-center gap-8 mb-8">
-                            <button onClick={() => setSellQuantity(Math.max(1, sellQuantity - 1))} className="w-14 h-14 bg-white rounded-2xl text-2xl font-black shadow-sm border border-slate-100 active:scale-90 transition-all">-</button>
-                            <span className="text-5xl font-black w-20 tabular-nums">{sellQuantity}</span>
-                            <button onClick={() => setSellQuantity(Math.min(selectedProduct.stock, sellQuantity + 1))} className="w-14 h-14 bg-white rounded-2xl text-2xl font-black shadow-sm border border-slate-100 active:scale-90 transition-all">+</button>
-                        </div>
-                        <div className="pt-6 border-t border-slate-200 w-full">
-                           <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">THÀNH TIỀN</p>
-                           <p className="text-3xl font-black text-indigo-600">{formatCurrency(selectedProduct.sellingPrice * sellQuantity)}</p>
-                        </div>
+                  </div>
+                  {/* Tồn kho - Grid 2 */}
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">TỒN KHO</p>
+                    <div className="flex items-center justify-center">
+                        <p className="font-black text-lg text-slate-800 whitespace-nowrap leading-none">
+                          {selectedProduct.stock} <span className="text-[10px] font-bold text-slate-400">SP</span>
+                        </p>
                     </div>
+                  </div>
+                  {/* Giá bán lẻ - Grid FullWidth: Auto-shrink font */}
+                  <div className="col-span-2 p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 flex flex-col justify-center min-h-[90px] overflow-hidden text-center">
+                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ NIÊM YẾT</p>
+                    <div className="flex items-center justify-center min-w-0">
+                        <p className={`font-black text-indigo-900 whitespace-nowrap leading-none transition-all ${
+                          formatCurrency(selectedProduct.sellingPrice).length > 25 ? 'text-xs' : 
+                          formatCurrency(selectedProduct.sellingPrice).length > 20 ? 'text-sm' : 
+                          formatCurrency(selectedProduct.sellingPrice).length > 15 ? 'text-xl' : 'text-3xl'
+                        }`}>
+                          {formatCurrency(selectedProduct.sellingPrice)}
+                        </p>
+                    </div>
+                  </div>
+                </div>
 
-                    <input type="text" placeholder="Họ tên khách hàng *" value={customer.fullName} onChange={e => setCustomer({...customer, fullName: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-2xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm text-center" />
-                    
-                    <button onClick={handleConfirmSale} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-indigo-100 active:scale-95 transition-all">XÁC NHẬN BÁN</button>
+                <div className="space-y-4 pt-4">
+                  <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl transition-all ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
+                  {role === 'admin' && (
+                    <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-indigo-600 transition-colors">SỬA THÔNG TIN SẢN PHẨM</button>
+                  )}
                 </div>
-            </div>
+              </div>
+           </div>
         </div>
       )}
 
-      {/* LOGIN MODAL */}
+      {/* MODALS (Login, Scan, Sell) remain unchanged but integrated */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[1100] bg-slate-900/95 flex items-center justify-center p-8 backdrop-blur-xl">
-           <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative animate-in zoom-in-95">
+           <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative">
               <button onClick={() => { setShowLoginModal(false); setEnteredPin(''); }} className="absolute top-8 right-8 text-slate-300"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
               <h2 className="text-xs font-black uppercase mb-10 text-slate-400 tracking-[0.3em]">PIN QUẢN TRỊ</h2>
               <div className="flex justify-center gap-4 mb-10">
-                {[0,1,2,3].map(i => <div key={i} className={`w-4 h-4 rounded-full border-2 border-indigo-600 transition-all duration-300 ${enteredPin.length > i ? 'bg-indigo-600 scale-110' : 'bg-transparent'}`}></div>)}
+                {[0,1,2,3].map(i => <div key={i} className={`w-4 h-4 rounded-full border-2 border-indigo-600 transition-all ${enteredPin.length > i ? 'bg-indigo-600' : 'bg-transparent'}`}></div>)}
               </div>
               <div className="grid grid-cols-3 gap-4">
                 {[1,2,3,4,5,6,7,8,9,0].map(n => <button key={n} onClick={() => handlePinInput(n.toString())} className="w-full aspect-square bg-slate-50 rounded-2xl text-xl font-black active:bg-indigo-600 active:text-white transition-all shadow-sm border border-slate-100">{n}</button>)}
@@ -421,19 +383,16 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* LOADING AI OVERLAY */}
       {scanningStatus === 'processing' && (
         <div className="fixed inset-0 z-[2000] bg-slate-900/95 flex flex-col items-center justify-center text-white backdrop-blur-xl">
-            <div className="relative w-24 h-24 mb-10">
-                <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
+            <div className="w-24 h-24 mb-10 relative">
                 <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-            <h3 className="text-xs font-black uppercase tracking-[0.4em] italic animate-pulse text-indigo-400">AI ĐANG NHẬN DIỆN...</h3>
-            <p className="text-[10px] font-bold opacity-30 mt-4 uppercase tracking-widest">Vui lòng giữ điện thoại ổn định</p>
+            <h3 className="text-xs font-black uppercase tracking-[0.4em] italic animate-pulse text-indigo-400">AI ĐANG PHÂN TÍCH...</h3>
         </div>
       )}
 
-      {isScanning && <CameraView title="QUÉT SẢN PHẨM AI" onClose={() => setIsScanning(false)} onCapture={async (base64) => {
+      {isScanning && <CameraView title="QUÉT SẢN PHẨM" onClose={() => setIsScanning(false)} onCapture={async (base64) => {
         setIsScanning(false); setScanningStatus('processing');
         try {
           const result = await searchProductByImage(base64, products);
@@ -442,58 +401,47 @@ const App: React.FC = () => {
             if (found) { setSelectedProduct(found); setView('detail'); }
           } else if (result.suggestedName) {
             setSearchQuery(result.suggestedName); setView('dashboard');
-          } else { alert("AI không nhận ra mặt hàng này. Hãy thử chụp rõ nhãn hiệu hơn."); }
+          } else { alert("AI không nhận diện được sản phẩm."); }
         } catch (e: any) { alert(e.message); } finally { setScanningStatus('idle'); }
       }} />}
       
       {view === 'add' && <ProductForm initialData={isEditing ? selectedProduct || undefined : undefined} existingProducts={products} onSave={(data) => {
-        if (isEditing && selectedProduct) { setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, ...data } : p)); setIsEditing(false); }
-        else { setProducts(prev => [...prev, { ...data, id: crypto.randomUUID().split('-')[0].toUpperCase(), createdAt: Date.now() }]); }
+        if (isEditing && selectedProduct) { 
+          setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, ...data } : p)); 
+          setIsEditing(false); 
+        } else { 
+          setProducts(prev => [...prev, { ...data, id: crypto.randomUUID().split('-')[0].toUpperCase(), createdAt: Date.now() }]); 
+        }
         setView('dashboard');
       }} onCancel={() => setView('dashboard')} />}
 
-      {view === 'detail' && selectedProduct && (
-        <div className="p-5 animate-in slide-in-from-bottom-10 duration-500">
-           <div className="bg-white rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100 max-w-lg mx-auto">
-              <div className="relative h-80 overflow-hidden">
-                <img src={selectedProduct.imageUrl} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                <button onClick={() => setView('dashboard')} className="absolute top-8 left-8 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl active:scale-90 transition-transform"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-              </div>
-              <div className="p-10 -mt-8 relative bg-white rounded-t-[3rem] space-y-8">
-                <div className="space-y-2">
-                   <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">THÔNG TIN CHI TIẾT</p>
-                   <h2 className="text-2xl font-black uppercase text-slate-900 leading-tight">{selectedProduct.name}</h2>
+      {isSelling && selectedProduct && (
+        <div className="fixed inset-0 z-[1000] bg-slate-900/90 flex items-center justify-center p-6 backdrop-blur-md">
+            <div className="bg-white w-full max-w-sm rounded-[3rem] overflow-hidden flex flex-col relative animate-in zoom-in-95 shadow-2xl">
+                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                   <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400">BÁN HÀNG</h3>
+                   <button onClick={() => setIsSelling(false)} className="text-slate-300 p-2"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 overflow-hidden flex flex-col justify-center min-h-[90px]">
-                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ</p>
-                    <p className={`font-black text-indigo-900 whitespace-nowrap leading-none transition-all ${
-                      formatCurrency(selectedProduct.sellingPrice).length > 15 ? 'text-[10px]' : 
-                      formatCurrency(selectedProduct.sellingPrice).length > 12 ? 'text-sm' : 'text-lg'
-                    }`}>
-                      {formatCurrency(selectedProduct.sellingPrice)}
-                    </p>
-                  </div>
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden flex flex-col justify-center min-h-[90px]">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0">TỒN KHO</p>
-                    <p className={`font-black text-slate-800 whitespace-nowrap leading-none transition-all ${
-                      (selectedProduct.stock.toString() + " SP").length > 10 ? 'text-sm' : 'text-lg'
-                    }`}>
-                      {selectedProduct.stock} <span className="text-[10px] font-bold text-slate-400">SP</span>
-                    </p>
-                  </div>
+                <div className="p-8 space-y-8 text-center">
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">SẢN PHẨM</p>
+                       <h4 className="text-lg font-black uppercase text-slate-900 leading-tight">{selectedProduct.name}</h4>
+                    </div>
+                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 flex flex-col items-center">
+                        <div className="flex items-center gap-8 mb-8">
+                            <button onClick={() => setSellQuantity(Math.max(1, sellQuantity - 1))} className="w-14 h-14 bg-white rounded-2xl text-2xl font-black shadow-sm border border-slate-100">-</button>
+                            <span className="text-5xl font-black w-20 tabular-nums">{sellQuantity}</span>
+                            <button onClick={() => setSellQuantity(Math.min(selectedProduct.stock, sellQuantity + 1))} className="w-14 h-14 bg-white rounded-2xl text-2xl font-black shadow-sm border border-slate-100">+</button>
+                        </div>
+                        <div className="pt-6 border-t border-slate-200 w-full text-center">
+                           <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">THÀNH TIỀN</p>
+                           <p className="text-3xl font-black text-indigo-600">{formatCurrency(selectedProduct.sellingPrice * sellQuantity)}</p>
+                        </div>
+                    </div>
+                    <input type="text" placeholder="Họ tên khách hàng *" value={customer.fullName} onChange={e => setCustomer({...customer, fullName: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm text-center outline-none focus:ring-2 focus:ring-indigo-600" />
+                    <button onClick={handleConfirmSale} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all">XÁC NHẬN BÁN</button>
                 </div>
-
-                <div className="space-y-4 pt-4">
-                  <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl active:scale-[0.98] transition-all ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
-                  {role === 'admin' && (
-                    <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-indigo-600 transition-colors">SỬA THÔNG TIN SẢN PHẨM</button>
-                  )}
-                </div>
-              </div>
-           </div>
+            </div>
         </div>
       )}
     </div>
