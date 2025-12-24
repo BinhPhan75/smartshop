@@ -27,26 +27,46 @@ export const initDB = (): Promise<IDBDatabase> => {
 
 // --- SYNC HELPERS ---
 const tryCloudSync = async (table: string, data: any[]) => {
+  // Ngăn chặn fetch nếu không có mạng
+  if (!navigator.onLine) return;
+  
   try {
-    if (data.length === 0) return;
-    const { error } = await supabase.from(table).upsert(data, { onConflict: 'id' });
+    if (!data || data.length === 0) return;
+    
+    // Sử dụng AbortController để giới hạn thời gian timeout cho fetch (5 giây)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const { error } = await supabase
+      .from(table)
+      .upsert(data, { onConflict: 'id' });
+
+    clearTimeout(timeoutId);
+
     if (error) {
-       // Nếu lỗi do thiếu bảng, chỉ log nhẹ để không làm phiền người dùng
+       // Phân loại lỗi để log phù hợp
        if (error.code === 'PGRST116' || error.message.includes('cache')) {
          console.warn(`Cloud Sync: Table '${table}' not found. Using local storage only.`);
        } else {
          console.error(`Cloud Sync Error (${table}):`, error.message);
        }
     }
-  } catch (e) {
-    // Silent catch to prevent app crash
+  } catch (e: any) {
+    // Xử lý lỗi fetch (mất mạng, server down, CORS) một cách thầm lặng
+    if (e.name === 'AbortError') {
+      console.warn(`Cloud Sync (${table}): Request timed out.`);
+    } else if (e instanceof TypeError && e.message === 'Failed to fetch') {
+      console.debug(`Cloud Sync (${table}): Project is likely paused or network is unreachable.`);
+    } else {
+      console.debug(`Cloud Sync (${table}) skipped: ${e.message}`);
+    }
   }
 };
 
 // --- API IMPLEMENTATION ---
 
 export const saveProductsToDB = async (products: Product[]) => {
-  // 1. Save Local
+  // 1. Save Local (Primary Source of Truth)
   const db = await initDB();
   const tx = db.transaction(STORE_PRODUCTS, "readwrite");
   const store = tx.objectStore(STORE_PRODUCTS);
@@ -56,7 +76,7 @@ export const saveProductsToDB = async (products: Product[]) => {
     tx.oncomplete = resolve;
   });
 
-  // 2. Background Cloud Sync
+  // 2. Background Cloud Sync (Optional)
   tryCloudSync('products', products);
 };
 
@@ -85,39 +105,56 @@ export const saveAllSalesToDB = async (sales: Sale[]) => {
 };
 
 export const getProductsFromDB = async (): Promise<Product[]> => {
-  try {
-    // Thử lấy từ Cloud trước
-    const { data, error } = await supabase.from('products').select('*').order('createdAt', { ascending: false });
-    if (!error && data) {
-       // Cập nhật ngược lại vào Local nếu có data từ Cloud
-       const db = await initDB();
-       const tx = db.transaction(STORE_PRODUCTS, "readwrite");
-       data.forEach(p => tx.objectStore(STORE_PRODUCTS).put(p));
-       return data;
-    }
-  } catch (e) {}
-
-  // Fallback về Local
+  // Fallback về Local trước để đảm bảo tốc độ phản hồi nhanh
   const db = await initDB();
   const tx = db.transaction(STORE_PRODUCTS, "readonly");
   const request = tx.objectStore(STORE_PRODUCTS).getAll();
-  return new Promise((resolve) => {
+  const localData: Product[] = await new Promise((resolve) => {
     request.onsuccess = () => resolve(request.result || []);
   });
+
+  // Sau đó thử lấy từ Cloud để cập nhật (nếu có mạng)
+  if (navigator.onLine) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('createdAt', { ascending: false });
+        
+      if (!error && data && data.length > 0) {
+         // Cập nhật ngược lại vào Local nếu Cloud có dữ liệu
+         const syncTx = db.transaction(STORE_PRODUCTS, "readwrite");
+         data.forEach(p => syncTx.objectStore(STORE_PRODUCTS).put(p));
+         return data;
+      }
+    } catch (e) {
+      console.debug("Cloud Fetch failed, using local data.");
+    }
+  }
+
+  return localData;
 };
 
 export const getSalesFromDB = async (): Promise<Sale[]> => {
-  try {
-    const { data, error } = await supabase.from('sales').select('*').order('timestamp', { ascending: false });
-    if (!error && data) return data;
-  } catch (e) {}
-
+  // Fallback local
   const db = await initDB();
   const tx = db.transaction(STORE_SALES, "readonly");
   const request = tx.objectStore(STORE_SALES).getAll();
-  return new Promise((resolve) => {
+  const localSales: Sale[] = await new Promise((resolve) => {
     request.onsuccess = () => resolve(request.result || []);
   });
+
+  if (navigator.onLine) {
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .order('timestamp', { ascending: false });
+      if (!error && data && data.length > 0) return data;
+    } catch (e) {}
+  }
+
+  return localSales;
 };
 
 export const exportBackup = async () => {

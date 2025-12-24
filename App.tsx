@@ -38,8 +38,6 @@ const App: React.FC = () => {
   const [sellQuantity, setSellQuantity] = useState(1);
   const [customer, setCustomer] = useState<CustomerInfo>({ fullName: '', address: '', idCard: '' });
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const now = new Date();
   const [reportFrom, setReportFrom] = useState(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
   const [reportTo, setReportTo] = useState(now.toISOString().split('T')[0]);
@@ -161,6 +159,14 @@ const App: React.FC = () => {
 
   const formatCurrency = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
+  const Copyright = () => (
+    <div className="text-center py-10 opacity-30 select-none pointer-events-none">
+      <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
+        Bản quyền phần mềm thuộc về binhphan
+      </p>
+    </div>
+  );
+
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
@@ -178,7 +184,7 @@ const App: React.FC = () => {
             <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest">{role === 'admin' ? 'QUẢN TRỊ VIÊN' : 'NHÂN VIÊN'}</p>
           </div>
           <button onClick={() => setIsScanning(true)} className="bg-white/20 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
           </button>
         </div>
       </header>
@@ -188,7 +194,7 @@ const App: React.FC = () => {
           <>
             <div className="relative group">
               <input type="text" placeholder="Tìm tên, thương hiệu hoặc mã..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full p-4 pl-12 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-medium transition-all" />
-              <svg className="w-5 h-5 absolute left-4 top-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <svg className="w-5 h-5 absolute left-4 top-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
             
             <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
@@ -231,7 +237,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   <button onClick={(e) => { e.stopPropagation(); startSelling(p); }} disabled={p.stock <= 0} className={`p-4 rounded-2xl shadow-lg border transition-all active:scale-90 ${p.stock > 0 ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-100' : 'bg-slate-50 text-slate-200 border-slate-100'}`}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                   </button>
                 </div>
               ))}
@@ -289,6 +295,9 @@ const App: React.FC = () => {
              )}
           </div>
         )}
+        
+        {/* Render Copyright at bottom of all main content views */}
+        {(view === 'dashboard' || view === 'reports' || view === 'settings') && <Copyright />}
       </main>
 
       {/* Nav Bottom */}
@@ -319,7 +328,6 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Thương hiệu - Grid 1: Auto-shrink font */}
                   <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">THƯƠNG HIỆU</p>
                     <div className="flex items-center justify-center min-w-0">
@@ -332,7 +340,6 @@ const App: React.FC = () => {
                         </p>
                     </div>
                   </div>
-                  {/* Tồn kho - Grid 2 */}
                   <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">TỒN KHO</p>
                     <div className="flex items-center justify-center">
@@ -341,7 +348,6 @@ const App: React.FC = () => {
                         </p>
                     </div>
                   </div>
-                  {/* Giá bán lẻ - Grid FullWidth: Auto-shrink font */}
                   <div className="col-span-2 p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 flex flex-col justify-center min-h-[90px] overflow-hidden text-center">
                     <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ NIÊM YẾT</p>
                     <div className="flex items-center justify-center min-w-0">
@@ -364,10 +370,11 @@ const App: React.FC = () => {
                 </div>
               </div>
            </div>
+           <Copyright />
         </div>
       )}
 
-      {/* MODALS (Login, Scan, Sell) remain unchanged but integrated */}
+      {/* MODALS (Login, Scan, Sell) */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[1100] bg-slate-900/95 flex items-center justify-center p-8 backdrop-blur-xl">
            <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative">
