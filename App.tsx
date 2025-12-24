@@ -10,7 +10,8 @@ import {
   saveSaleToDB, 
   getSalesFromDB, 
   saveAllSalesToDB,
-  exportBackup
+  exportBackup,
+  deleteProductFromDB
 } from './storageService';
 
 const removeAccents = (str: string): string => {
@@ -114,6 +115,20 @@ const App: React.FC = () => {
     setSelectedProduct(p);
     setSellQuantity(1);
     setIsSelling(true);
+  };
+
+  const handleDeleteProduct = async (e: React.MouseEvent, productId: string, productName: string) => {
+    e.stopPropagation();
+    if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn xóa sản phẩm "${productName}" khỏi kho hàng? Hành động này không thể hoàn tác.`)) {
+      // 1. Xóa trong UI state ngay lập tức
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      // 2. Gọi hàm xóa triệt để trong DB và Cloud
+      try {
+        await deleteProductFromDB(productId);
+      } catch (err) {
+        console.error("Lỗi xóa sản phẩm:", err);
+      }
+    }
   };
 
   const handleConfirmSale = () => {
@@ -231,14 +246,21 @@ const App: React.FC = () => {
                         )}
                         <p className="text-indigo-600 font-black text-sm">{formatCurrency(p.sellingPrice)}</p>
                       </div>
-                      <div className="mt-1.5">
+                      <div className="mt-1.5 flex items-center gap-2">
                          <span className={`text-[8px] font-black px-2.5 py-1 rounded-full border ${p.stock < 5 ? 'bg-red-50 text-red-500 border-red-100 animate-pulse' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>TỒN KHO: {p.stock}</span>
                       </div>
                     </div>
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); startSelling(p); }} disabled={p.stock <= 0} className={`p-4 rounded-2xl shadow-lg border transition-all active:scale-90 ${p.stock > 0 ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-100' : 'bg-slate-50 text-slate-200 border-slate-100'}`}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); startSelling(p); }} disabled={p.stock <= 0} className={`p-4 rounded-2xl shadow-lg border transition-all active:scale-90 ${p.stock > 0 ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-100' : 'bg-slate-50 text-slate-200 border-slate-100'}`}>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </button>
+                    {role === 'admin' && (
+                      <button onClick={(e) => handleDeleteProduct(e, p.id, p.name)} className="p-4 rounded-2xl bg-red-50 text-red-500 border border-red-100 shadow-sm active:scale-90 transition-all hover:bg-red-500 hover:text-white">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -296,7 +318,6 @@ const App: React.FC = () => {
           </div>
         )}
         
-        {/* Render Copyright at bottom of all main content views */}
         {(view === 'dashboard' || view === 'reports' || view === 'settings') && <Copyright />}
       </main>
 
@@ -363,10 +384,12 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-4 pt-4">
-                  <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl transition-all ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
-                  {role === 'admin' && (
-                    <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-indigo-600 transition-colors">SỬA THÔNG TIN SẢN PHẨM</button>
-                  )}
+                  <div className="grid grid-cols-1 gap-4">
+                    <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl transition-all ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
+                    {role === 'admin' && (
+                      <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-50 hover:text-indigo-600 transition-colors">SỬA THÔNG TIN SẢN PHẨM</button>
+                    )}
+                  </div>
                 </div>
               </div>
            </div>
@@ -374,7 +397,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* MODALS (Login, Scan, Sell) */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[1100] bg-slate-900/95 flex items-center justify-center p-8 backdrop-blur-xl">
            <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative">
