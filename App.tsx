@@ -467,13 +467,13 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-5">
-                  <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50">
+                  <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 overflow-hidden">
                     <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider">GIÁ BÁN LẺ</p>
-                    <p className="font-black text-2xl text-indigo-900">{formatCurrency(selectedProduct.sellingPrice)}</p>
+                    <p className="font-black text-lg text-indigo-900 break-words leading-tight">{formatCurrency(selectedProduct.sellingPrice)}</p>
                   </div>
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider">TỒN KHO</p>
-                    <p className="font-black text-2xl text-slate-800">{selectedProduct.stock} <span className="text-xs font-bold text-slate-400">SP</span></p>
+                    <p className="font-black text-lg text-slate-800 break-words leading-tight">{selectedProduct.stock} <span className="text-xs font-bold text-slate-400">SP</span></p>
                   </div>
                 </div>
 
