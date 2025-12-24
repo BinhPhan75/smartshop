@@ -41,7 +41,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
     setImageUrl(base64);
     setShowCamera(false);
     
-    // Nếu chưa có tên hoặc thương hiệu, dùng AI gợi ý
     if (!name.trim()) {
       setIsAiProcessing(true);
       try {
@@ -69,7 +68,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Preview Image */}
           <div className="relative cursor-pointer group" onClick={() => setShowCamera(true)}>
             {imageUrl ? (
               <div className="relative">
@@ -95,24 +93,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
           <div className="grid grid-cols-1 gap-5">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Tên mặt hàng</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold text-slate-800 transition-all" 
-                placeholder="Ví dụ: Nước ngọt Coca-Cola 330ml" 
-                required 
-              />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold text-slate-800 transition-all" placeholder="Ví dụ: Nước ngọt Coca-Cola 330ml" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Thương hiệu</label>
-              <input 
-                type="text" 
-                value={brand} 
-                onChange={(e) => setBrand(e.target.value)} 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold italic text-indigo-900 transition-all" 
-                placeholder="Ví dụ: Samsung, Nike, Coca-Cola..." 
-              />
+              <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold italic text-indigo-900 transition-all" placeholder="Ví dụ: Samsung, Coca-Cola..." />
             </div>
           </div>
 
@@ -123,47 +108,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
             </div>
             <div>
               <label className="block text-[10px] font-black text-indigo-600 uppercase mb-2 ml-1 tracking-widest">Nhập thêm</label>
-              <input 
-                type="number" 
-                value={newStock} 
-                onChange={(e) => setNewStock(e.target.value)} 
-                className="w-full p-4 bg-indigo-50 border border-indigo-200 rounded-2xl font-black text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-600" 
-                placeholder="+0" 
-              />
+              <input type="number" value={newStock} onChange={(e) => setNewStock(e.target.value)} className="w-full p-4 bg-indigo-50 border border-indigo-200 rounded-2xl font-black text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-600" placeholder="+0" />
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Giá vốn (VND)</label>
-              <input 
-                type="number" 
-                value={purchasePrice} 
-                onChange={(e) => setPurchasePrice(e.target.value)} 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-indigo-600" 
-                placeholder="0" 
-                required 
-              />
+              <input type="number" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-indigo-600" placeholder="0" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-emerald-600 uppercase mb-2 ml-1 tracking-widest">Giá bán (VND)</label>
-              <input 
-                type="number" 
-                value={sellingPrice} 
-                onChange={(e) => setSellingPrice(e.target.value)} 
-                className="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-2xl font-black text-emerald-600 outline-none focus:ring-2 focus:ring-emerald-600" 
-                placeholder="0" 
-                required 
-              />
+              <input type="number" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-2xl font-black text-emerald-600 outline-none focus:ring-2 focus:ring-emerald-600" placeholder="0" required />
             </div>
           </div>
           
-          <button 
-            type="submit" 
-            className="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest active:scale-[0.98] transition-all text-xs"
-          >
-            LƯU THAY ĐỔI
-          </button>
+          <button type="submit" className="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest active:scale-[0.98] transition-all text-xs">LƯU THÔNG TIN</button>
         </form>
       </div>
       {showCamera && <CameraView title="CHỤP ẢNH SẢN PHẨM" onClose={() => setShowCamera(false)} onCapture={handleCapture} />}

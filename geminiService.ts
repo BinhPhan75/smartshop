@@ -16,22 +16,20 @@ export const searchProductByImage = async (
   }));
 
   const prompt = `
-    Nhiệm vụ: Nhận diện sản phẩm và thương hiệu từ hình ảnh sản phẩm.
-    Dữ liệu kho hiện có: ${JSON.stringify(context)}
+    Nhiệm vụ: Nhận diện sản phẩm từ hình ảnh.
+    Dữ liệu kho cửa hàng: ${JSON.stringify(context)}
     
-    Yêu cầu chi tiết:
-    1. PHÂN TÍCH VĂN BẢN & LOGO: Đọc các nhãn hiệu, logo, tên xuất hiện trên bao bì.
-    2. SO KHỚP DANH SÁCH: Nếu khớp với sản phẩm trong kho > 80%, trả về "productId" tương ứng.
-    3. GỢI Ý SẢN PHẨM MỚI: Nếu là sản phẩm chưa có, hãy gợi ý "suggestedName" (Tên SP đầy đủ) và "brand" (Thương hiệu chính xác nhất của hãng).
-    
-    Trả về định dạng JSON nghiêm ngặt.
+    Yêu cầu:
+    1. ĐỐI CHIẾU: Nếu khớp với sản phẩm trong kho > 80%, trả về "productId".
+    2. GỢI Ý MỚI: Nếu sản phẩm chưa có trong kho, gợi ý "suggestedName" và "brand" chính xác.
+    Phản hồi định dạng JSON.
   `;
 
   try {
     const imageData = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest', 
       contents: [{
         parts: [
           { text: prompt },
@@ -46,17 +44,14 @@ export const searchProductByImage = async (
             productId: { type: Type.STRING, description: "ID nếu có trong kho, ngược lại null" },
             confidence: { type: Type.NUMBER, description: "Độ tin cậy 0-1" },
             suggestedName: { type: Type.STRING, description: "Tên sản phẩm gợi ý" },
-            brand: { type: Type.STRING, description: "Thương hiệu gợi ý" },
-            description: { type: Type.STRING, description: "Lý do nhận diện" }
+            brand: { type: Type.STRING, description: "Thương hiệu gợi ý" }
           },
           required: ["productId", "confidence"]
         }
       }
     });
 
-    const text = response.text;
-    if (!text) throw new Error("AI không phản hồi");
-    return JSON.parse(text);
+    return JSON.parse(response.text || "{}");
   } catch (error: any) {
     console.error("AI Error:", error);
     return { productId: null, confidence: 0 };

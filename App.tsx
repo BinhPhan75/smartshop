@@ -170,7 +170,7 @@ const App: React.FC = () => {
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
-      <h1 className="text-3xl font-black tracking-tighter mb-2">DUYHALAM</h1>
+      <h1 className="text-3xl font-black tracking-tighter mb-2">SMARTSHOP</h1>
       <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu từ Cloud...</p>
     </div>
   );
@@ -180,7 +180,7 @@ const App: React.FC = () => {
       <header className="bg-indigo-600 text-white p-6 pt-12 rounded-b-[2.5rem] shadow-xl sticky top-0 z-40">
         <div className="flex justify-between items-center max-w-lg mx-auto">
           <div onClick={() => { setLogoClicks(c => c + 1); if(logoClicks === 4) { setShowLoginModal(true); setLogoClicks(0); } }} className="cursor-pointer active:scale-95 transition-transform">
-            <h1 className="text-xl font-black tracking-tighter">DUYHALAM</h1>
+            <h1 className="text-xl font-black tracking-tighter">SMARTSHOP</h1>
             <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest">{role === 'admin' ? 'QUẢN TRỊ VIÊN' : 'NHÂN VIÊN'}</p>
           </div>
           <button onClick={() => setIsScanning(true)} className="bg-white/20 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all">
@@ -259,7 +259,7 @@ const App: React.FC = () => {
                 
                 <div className="grid grid-cols-1 gap-4 mb-8">
                    <div className="relative group">
-                     <input type="text" placeholder="Tìm tên khách hàng hoặc CCCD..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
+                     <input type="text" placeholder="Tìm khách hàng hoặc CCCD..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
                    </div>
                    <select value={productFilterId} onChange={e => setProductFilterId(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs appearance-none">
                       <option value="">Tất cả mặt hàng</option>
@@ -274,19 +274,19 @@ const App: React.FC = () => {
                   </div>
                   {role === 'admin' && (
                     <div className="p-7 bg-emerald-600 rounded-[2rem] text-white shadow-xl animate-in zoom-in-95 duration-700">
-                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
+                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒ</p>
                       <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">DANH SÁCH GIAO DỊCH ({reportData.count})</h3>
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">LỊCH SỬ BÁN HÀNG ({reportData.count})</h3>
                   {reportData.sales.length === 0 ? (
-                    <div className="text-center py-10 opacity-20 font-black text-[10px] uppercase">Không có giao dịch nào</div>
+                    <div className="text-center py-10 opacity-20 font-black text-[10px] uppercase">Không tìm thấy giao dịch nào</div>
                   ) : (
                     reportData.sales.map(s => (
-                      <div key={s.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-3 shadow-sm">
+                      <div key={s.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-3 shadow-sm hover:border-indigo-200 transition-colors">
                         <div className="flex justify-between items-start">
                           <div>
                             <h4 className="font-black text-slate-800 text-[11px] uppercase leading-tight">{s.productName}</h4>
@@ -296,10 +296,10 @@ const App: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-end border-t border-slate-200/50 pt-2">
                           <div className="flex flex-col gap-0.5">
-                            <p className="text-[8px] font-black text-slate-400 uppercase">Khách hàng: <span className="text-slate-600">{s.customer?.fullName || "Khách lẻ"}</span></p>
+                            <p className="text-[8px] font-black text-slate-400 uppercase">Khách: <span className="text-slate-600">{s.customer?.fullName || "Khách lẻ"}</span></p>
                             {s.customer?.idCard && <p className="text-[8px] font-black text-slate-400 uppercase">CCCD: <span className="text-slate-600">{s.customer.idCard}</span></p>}
                           </div>
-                          <p className="text-[9px] font-black text-slate-500">Số lượng: <span className="bg-white px-2 py-0.5 rounded-full border border-slate-200">{s.quantity}</span></p>
+                          <p className="text-[9px] font-black text-slate-500">SL: <span className="bg-white px-2 py-0.5 rounded-full border border-slate-200">{s.quantity}</span></p>
                         </div>
                       </div>
                     ))
@@ -320,25 +320,24 @@ const App: React.FC = () => {
                 </div>
              </section>
              {role === 'admin' && (
-               <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl">
+               <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl active:scale-95">
                  XUẤT FILE SAO LƯU (.JSON)
                </button>
              )}
           </div>
         )}
         
-        {/* Render Copyright at bottom of all main content views */}
         {(view === 'dashboard' || view === 'reports' || view === 'settings') && <Copyright />}
       </main>
 
       {/* Nav Bottom */}
       {view !== 'add' && view !== 'detail' && !isScanning && (
-        <nav className="fixed bottom-6 left-6 right-6 bg-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] p-4 rounded-[2.5rem] z-30 flex justify-around items-center border border-slate-100">
+        <nav className="fixed bottom-6 left-6 right-6 bg-white/90 backdrop-blur-xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] p-4 rounded-[2.5rem] z-30 flex justify-around items-center border border-white/50">
             <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1.5 transition-colors ${view === 'dashboard' ? 'text-indigo-600' : 'text-slate-300'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span className="text-[8px] font-black uppercase tracking-tighter">KHO</span></button>
             <button onClick={() => setView('reports')} className={`flex flex-col items-center gap-1.5 transition-colors ${view === 'reports' ? 'text-indigo-600' : 'text-slate-300'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span className="text-[8px] font-black uppercase tracking-tighter">BÁO CÁO</span></button>
             <div className="w-14"></div>
             <button onClick={() => setView('settings')} className={`flex flex-col items-center gap-1.5 transition-colors ${view === 'settings' ? 'text-indigo-600' : 'text-slate-300'}`}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg><span className="text-[8px] font-black uppercase tracking-tighter">HỆ THỐNG</span></button>
-            <button onClick={() => setIsScanning(true)} className="absolute left-1/2 -translate-x-1/2 -top-10 w-22 h-22 bg-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl border-[10px] border-slate-50 active:scale-90 transition-all z-40">
+            <button onClick={() => setIsScanning(true)} className="absolute left-1/2 -translate-x-1/2 -top-10 w-22 h-22 bg-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl border-[10px] border-white active:scale-90 transition-all z-40">
                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
             </button>
         </nav>
@@ -362,10 +361,8 @@ const App: React.FC = () => {
                   <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">THƯƠNG HIỆU</p>
                     <div className="flex items-center justify-center min-w-0">
-                        <p className={`font-black text-slate-800 whitespace-nowrap leading-none transition-all text-center ${
-                          (selectedProduct.brand || "KHÁC").length > 18 ? 'text-[9px]' : 
-                          (selectedProduct.brand || "KHÁC").length > 14 ? 'text-xs' : 
-                          (selectedProduct.brand || "KHÁC").length > 10 ? 'text-sm' : 'text-lg'
+                        <p className={`font-black text-slate-800 whitespace-nowrap leading-none text-center ${
+                          (selectedProduct.brand || "KHÁC").length > 10 ? 'text-xs' : 'text-lg'
                         }`}>
                           {selectedProduct.brand || "CHƯA RÕ"}
                         </p>
@@ -374,19 +371,15 @@ const App: React.FC = () => {
                   <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col justify-center min-h-[90px] overflow-hidden">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0 text-center">TỒN KHO</p>
                     <div className="flex items-center justify-center">
-                        <p className="font-black text-lg text-slate-800 whitespace-nowrap leading-none">
+                        <p className="font-black text-lg text-slate-800 leading-none">
                           {selectedProduct.stock} <span className="text-[10px] font-bold text-slate-400">SP</span>
                         </p>
                     </div>
                   </div>
                   <div className="col-span-2 p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 flex flex-col justify-center min-h-[90px] overflow-hidden text-center">
-                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ NIÊM YẾT</p>
+                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ</p>
                     <div className="flex items-center justify-center min-w-0">
-                        <p className={`font-black text-indigo-900 whitespace-nowrap leading-none transition-all ${
-                          formatCurrency(selectedProduct.sellingPrice).length > 25 ? 'text-xs' : 
-                          formatCurrency(selectedProduct.sellingPrice).length > 20 ? 'text-sm' : 
-                          formatCurrency(selectedProduct.sellingPrice).length > 15 ? 'text-xl' : 'text-3xl'
-                        }`}>
+                        <p className="font-black text-3xl text-indigo-900 whitespace-nowrap leading-none">
                           {formatCurrency(selectedProduct.sellingPrice)}
                         </p>
                     </div>
@@ -394,7 +387,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-4 pt-4">
-                  <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl transition-all ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
+                  <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl transition-all active:scale-95 ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-300'}`}>BÁN NGAY</button>
                   {role === 'admin' && (
                     <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-indigo-600 transition-colors">SỬA THÔNG TIN SẢN PHẨM</button>
                   )}
@@ -405,7 +398,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* MODALS (Login, Scan, Sell) */}
+      {/* MODALS */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[1100] bg-slate-900/95 flex items-center justify-center p-8 backdrop-blur-xl">
            <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative">
