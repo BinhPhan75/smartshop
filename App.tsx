@@ -10,7 +10,8 @@ import {
   saveSaleToDB, 
   getSalesFromDB, 
   saveAllSalesToDB,
-  exportBackup
+  exportBackup,
+  importBackup
 } from './storageService';
 
 const removeAccents = (str: string): string => {
@@ -41,6 +42,8 @@ const App: React.FC = () => {
   const now = new Date();
   const [reportFrom, setReportFrom] = useState(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
   const [reportTo, setReportTo] = useState(now.toISOString().split('T')[0]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -157,6 +160,24 @@ const App: React.FC = () => {
     }
   };
 
+  const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!confirm("Hành động này sẽ ghi đè toàn bộ dữ liệu hiện tại bằng dữ liệu từ file sao lưu. Bạn có chắc chắn muốn phục hồi không?")) return;
+    
+    setIsLoading(true);
+    try {
+      const success = await importBackup(file);
+      if (success) {
+        alert("Phục hồi dữ liệu thành công! Ứng dụng sẽ tự động tải lại.");
+        window.location.reload();
+      }
+    } catch (err: any) {
+      alert("Lỗi phục hồi: " + err.message);
+      setIsLoading(false);
+    }
+  };
+
   const formatCurrency = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
   const Copyright = () => (
@@ -171,7 +192,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
       <h1 className="text-3xl font-black tracking-tighter mb-2">SMARTSHOP</h1>
-      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu từ Cloud...</p>
+      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu...</p>
     </div>
   );
 
@@ -320,14 +341,22 @@ const App: React.FC = () => {
                 </div>
              </section>
              {role === 'admin' && (
-               <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl">
-                 XUẤT FILE SAO LƯU (.JSON)
-               </button>
+               <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4">DỮ LIỆU & SAO LƯU</h3>
+                  <button onClick={exportBackup} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    XUẤT FILE SAO LƯU (.JSON)
+                  </button>
+                  <button onClick={() => fileInputRef.current?.click()} className="w-full py-5 bg-white border-2 border-slate-900 text-slate-900 rounded-2xl font-black text-[11px] uppercase flex items-center justify-center gap-3 shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    PHỤC HỒI DỮ LIỆU (.JSON)
+                  </button>
+                  <input ref={fileInputRef} type="file" accept=".json" onChange={handleRestore} className="hidden" />
+               </div>
              )}
           </div>
         )}
         
-        {/* Render Copyright at bottom of all main content views */}
         {(view === 'dashboard' || view === 'reports' || view === 'settings') && <Copyright />}
       </main>
 
@@ -405,7 +434,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* MODALS (Login, Scan, Sell) */}
+      {/* MODALS */}
       {showLoginModal && (
         <div className="fixed inset-0 z-[1100] bg-slate-900/95 flex items-center justify-center p-8 backdrop-blur-xl">
            <div className="bg-white rounded-[3rem] p-12 w-full max-w-xs text-center shadow-2xl relative">
