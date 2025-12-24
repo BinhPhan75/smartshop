@@ -102,10 +102,24 @@ const App: React.FC = () => {
       );
     }
     if (productFilterId) filtered = filtered.filter(s => s.productId === productFilterId);
+    
     const revenue = filtered.reduce((acc, s) => acc + (Number(s.totalAmount) || 0), 0);
     const cost = filtered.reduce((acc, s) => acc + ((Number(s.purchasePrice) || 0) * (Number(s.quantity) || 0)), 0);
+
+    // Bổ sung thống kê theo từng sản phẩm
+    const productMap = new Map<string, { name: string, qty: number, rev: number, profit: number }>();
+    filtered.forEach(s => {
+      const item = productMap.get(s.productId) || { name: s.productName, qty: 0, rev: 0, profit: 0 };
+      item.qty += s.quantity;
+      item.rev += s.totalAmount;
+      item.profit += (s.sellingPrice - s.purchasePrice) * s.quantity;
+      productMap.set(s.productId, item);
+    });
+    const summary = Array.from(productMap.values()).sort((a, b) => b.qty - a.qty);
+
     return {
       sales: filtered.sort((a, b) => b.timestamp - a.timestamp),
+      summary,
       revenue, cost, profit: revenue - cost, count: filtered.length
     };
   }, [sales, reportFrom, reportTo, customerSearchQuery, productFilterId]);
@@ -170,8 +184,8 @@ const App: React.FC = () => {
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
-      <h1 className="text-3xl font-black tracking-tighter mb-2">DUYHALAM</h1>
-      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu từ Cloud...</p>
+      <h1 className="text-3xl font-black tracking-tighter mb-2">SMARTSHOP</h1>
+      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu...</p>
     </div>
   );
 
@@ -180,7 +194,7 @@ const App: React.FC = () => {
       <header className="bg-indigo-600 text-white p-6 pt-12 rounded-b-[2.5rem] shadow-xl sticky top-0 z-40">
         <div className="flex justify-between items-center max-w-lg mx-auto">
           <div onClick={() => { setLogoClicks(c => c + 1); if(logoClicks === 4) { setShowLoginModal(true); setLogoClicks(0); } }} className="cursor-pointer active:scale-95 transition-transform">
-            <h1 className="text-xl font-black tracking-tighter">DUYHALAM</h1>
+            <h1 className="text-xl font-black tracking-tighter">SMARTSHOP</h1>
             <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest">{role === 'admin' ? 'QUẢN TRỊ VIÊN' : 'NHÂN VIÊN'}</p>
           </div>
           <button onClick={() => setIsScanning(true)} className="bg-white/20 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all">
@@ -274,14 +288,41 @@ const App: React.FC = () => {
                   </div>
                   {role === 'admin' && (
                     <div className="p-7 bg-emerald-600 rounded-[2rem] text-white shadow-xl animate-in zoom-in-95 duration-700">
-                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
+                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒ</p>
                       <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
                     </div>
                   )}
                 </div>
 
+                {/* Phần Tổng hợp Sản phẩm (Mới bổ sung) */}
+                <div className="space-y-4 mb-10">
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">TỔNG HỢP THEO SẢN PHẨM</h3>
+                  <div className="bg-slate-50 rounded-[2rem] overflow-hidden border border-slate-100">
+                    {reportData.summary.length === 0 ? (
+                      <div className="p-8 text-center opacity-20 font-black text-[9px] uppercase tracking-widest">Không có dữ liệu tổng hợp</div>
+                    ) : (
+                      <div className="divide-y divide-slate-200/50">
+                        {reportData.summary.map((item, idx) => (
+                          <div key={idx} className="p-4 flex items-center justify-between hover:bg-white transition-colors">
+                            <div className="flex-1 min-w-0 pr-4">
+                              <p className="font-black text-slate-800 text-[11px] uppercase truncate">{item.name}</p>
+                              <div className="flex gap-2 mt-1">
+                                <span className="text-[8px] font-bold text-slate-400 uppercase">Doanh thu: <span className="text-indigo-600">{formatCurrency(item.rev)}</span></span>
+                                {role === 'admin' && <span className="text-[8px] font-bold text-slate-400 uppercase">Lãi: <span className="text-emerald-600">{formatCurrency(item.profit)}</span></span>}
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <span className="bg-indigo-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-sm shadow-indigo-200">{item.qty} SP</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">LỊCH SỬ BÁN HÀNG ({reportData.count})</h3>
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">LỊCH SỬ GIAO DỊCH ({reportData.count})</h3>
                   {reportData.sales.length === 0 ? (
                     <div className="text-center py-10 opacity-20 font-black text-[10px] uppercase">Không tìm thấy giao dịch nào</div>
                   ) : (
