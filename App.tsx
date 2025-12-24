@@ -274,7 +274,7 @@ const App: React.FC = () => {
                   </div>
                   {role === 'admin' && (
                     <div className="p-7 bg-emerald-600 rounded-[2rem] text-white shadow-xl animate-in zoom-in-95 duration-700">
-                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒ</p>
+                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
                       <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
                     </div>
                   )}
