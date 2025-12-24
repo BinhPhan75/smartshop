@@ -170,7 +170,7 @@ const App: React.FC = () => {
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
-      <h1 className="text-3xl font-black tracking-tighter mb-2">SMARTSHOP</h1>
+      <h1 className="text-3xl font-black tracking-tighter mb-2">DUYHALAM</h1>
       <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu từ Cloud...</p>
     </div>
   );
