@@ -170,7 +170,7 @@ const App: React.FC = () => {
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
-      <h1 className="text-3xl font-black tracking-tighter mb-2">SMARTSHOP</h1>
+      <h1 className="text-3xl font-black tracking-tighter mb-2">DUYHALAM</h1>
       <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu từ Cloud...</p>
     </div>
   );
@@ -180,7 +180,7 @@ const App: React.FC = () => {
       <header className="bg-indigo-600 text-white p-6 pt-12 rounded-b-[2.5rem] shadow-xl sticky top-0 z-40">
         <div className="flex justify-between items-center max-w-lg mx-auto">
           <div onClick={() => { setLogoClicks(c => c + 1); if(logoClicks === 4) { setShowLoginModal(true); setLogoClicks(0); } }} className="cursor-pointer active:scale-95 transition-transform">
-            <h1 className="text-xl font-black tracking-tighter">SMARTSHOP</h1>
+            <h1 className="text-xl font-black tracking-tighter">DUYHALAM</h1>
             <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest">{role === 'admin' ? 'QUẢN TRỊ VIÊN' : 'NHÂN VIÊN'}</p>
           </div>
           <button onClick={() => setIsScanning(true)} className="bg-white/20 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all">
@@ -274,7 +274,7 @@ const App: React.FC = () => {
                   </div>
                   {role === 'admin' && (
                     <div className="p-7 bg-emerald-600 rounded-[2rem] text-white shadow-xl animate-in zoom-in-95 duration-700">
-                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒ</p>
+                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
                       <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
                     </div>
                   )}
