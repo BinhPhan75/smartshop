@@ -467,13 +467,22 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-5">
-                  <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 overflow-hidden">
-                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider">GIÁ BÁN LẺ</p>
-                    <p className="font-black text-lg text-indigo-900 break-words leading-tight">{formatCurrency(selectedProduct.sellingPrice)}</p>
+                  <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 overflow-hidden flex flex-col justify-center min-h-[90px]">
+                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1.5 tracking-wider shrink-0">GIÁ BÁN LẺ</p>
+                    <p className={`font-black text-indigo-900 whitespace-nowrap leading-none transition-all ${
+                      formatCurrency(selectedProduct.sellingPrice).length > 15 ? 'text-[10px]' : 
+                      formatCurrency(selectedProduct.sellingPrice).length > 12 ? 'text-sm' : 'text-lg'
+                    }`}>
+                      {formatCurrency(selectedProduct.sellingPrice)}
+                    </p>
                   </div>
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider">TỒN KHO</p>
-                    <p className="font-black text-lg text-slate-800 break-words leading-tight">{selectedProduct.stock} <span className="text-xs font-bold text-slate-400">SP</span></p>
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden flex flex-col justify-center min-h-[90px]">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-wider shrink-0">TỒN KHO</p>
+                    <p className={`font-black text-slate-800 whitespace-nowrap leading-none transition-all ${
+                      (selectedProduct.stock.toString() + " SP").length > 10 ? 'text-sm' : 'text-lg'
+                    }`}>
+                      {selectedProduct.stock} <span className="text-[10px] font-bold text-slate-400">SP</span>
+                    </p>
                   </div>
                 </div>
 
