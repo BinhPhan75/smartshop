@@ -106,7 +106,6 @@ const App: React.FC = () => {
     const revenue = filtered.reduce((acc, s) => acc + (Number(s.totalAmount) || 0), 0);
     const cost = filtered.reduce((acc, s) => acc + ((Number(s.purchasePrice) || 0) * (Number(s.quantity) || 0)), 0);
 
-    // Bổ sung thống kê theo từng sản phẩm
     const productMap = new Map<string, { name: string, qty: number, rev: number, profit: number }>();
     filtered.forEach(s => {
       const item = productMap.get(s.productId) || { name: s.productName, qty: 0, rev: 0, profit: 0 };
@@ -115,7 +114,7 @@ const App: React.FC = () => {
       item.profit += (s.sellingPrice - s.purchasePrice) * s.quantity;
       productMap.set(s.productId, item);
     });
-    const summary = Array.from(productMap.values()).sort((a, b) => b.qty - a.qty);
+    const summary = Array.from(productMap.values()).sort((a, b) => b.rev - a.rev);
 
     return {
       sales: filtered.sort((a, b) => b.timestamp - a.timestamp),
@@ -171,7 +170,7 @@ const App: React.FC = () => {
     }
   };
 
-  const formatCurrency = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+  const formatCurrency = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
 
   const Copyright = () => (
     <div className="text-center py-10 opacity-30 select-none pointer-events-none">
@@ -185,7 +184,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-indigo-600 flex flex-col items-center justify-center text-white p-10 text-center">
       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-8"></div>
       <h1 className="text-3xl font-black tracking-tighter mb-2">DUYHALAM</h1>
-      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu...</p>
+      <p className="text-xs font-bold opacity-60 uppercase tracking-widest animate-pulse">Đang tải dữ liệu chuyên sâu...</p>
     </div>
   );
 
@@ -260,87 +259,137 @@ const App: React.FC = () => {
         )}
 
         {view === 'reports' && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-10 duration-500">
-             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-100">
-                <h2 className="text-sm font-black uppercase mb-8 tracking-widest text-slate-400 flex items-center gap-3">
-                   <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                   BÁO CÁO KINH DOANH
-                </h2>
-                <div className="grid grid-cols-2 gap-4 mb-4 bg-slate-50 p-5 rounded-3xl border border-slate-100">
-                  <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Từ ngày</label><input type="date" value={reportFrom} onChange={e => setReportFrom(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
-                  <div><label className="block text-[8px] font-black text-slate-400 uppercase mb-2 ml-1">Đến ngày</label><input type="date" value={reportTo} onChange={e => setReportTo(e.target.value)} className="w-full p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20" /></div>
+          <div className="space-y-6 animate-in slide-in-from-bottom-10 duration-700">
+             {/* Header Section */}
+             <div className="flex items-center justify-between px-2">
+                <div>
+                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">DASHBOARD</h2>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Thống kê kinh doanh DUYHALAM</p>
+                </div>
+                <div className="p-3 bg-indigo-600/10 rounded-2xl text-indigo-600">
+                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+             </div>
+
+             {/* Filter System */}
+             <div className="bg-white rounded-[2.5rem] p-6 shadow-xl border border-slate-100 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                     <label className="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Từ ngày</label>
+                     <input type="date" value={reportFrom} onChange={e => setReportFrom(e.target.value)} className="w-full bg-transparent text-xs font-black outline-none text-slate-800" />
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                     <label className="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Đến ngày</label>
+                     <input type="date" value={reportTo} onChange={e => setReportTo(e.target.value)} className="w-full bg-transparent text-xs font-black outline-none text-slate-800" />
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                   <div className="relative group">
-                     <input type="text" placeholder="Tìm khách hàng hoặc CCCD..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
+                <div className="relative">
+                   <input type="text" placeholder="Tìm tên khách hoặc số CCCD..." value={customerSearchQuery} onChange={e => setCustomerSearchQuery(e.target.value)} className="w-full p-4 pl-12 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs" />
+                   <svg className="w-4 h-4 absolute left-5 top-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+             </div>
+
+             {/* Professional KPI Cards */}
+             <div className="grid grid-cols-1 gap-4">
+                <div className="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                   <div className="relative z-10">
+                      <p className="text-[10px] font-black opacity-60 uppercase mb-1 tracking-[0.2em]">TỔNG DOANH THU</p>
+                      <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.revenue)}</h3>
+                      <div className="flex items-center gap-2 mt-4 text-[10px] font-bold">
+                         <span className="bg-white/20 px-2 py-1 rounded-full">{reportData.count} Giao dịch</span>
+                      </div>
                    </div>
-                   <select value={productFilterId} onChange={e => setProductFilterId(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-xs appearance-none">
-                      <option value="">Tất cả mặt hàng</option>
-                      {soldProductsList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                   </select>
+                   <div className="absolute top-0 right-0 p-8 opacity-10">
+                      <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path></svg>
+                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                  <div className="p-7 bg-slate-900 rounded-[2rem] text-white shadow-xl">
-                    <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">TỔNG DOANH THU</p>
-                    <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.revenue)}</h3>
+                {role === 'admin' && (
+                  <div className="bg-emerald-600 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-1000">
+                     <div className="relative z-10">
+                        <p className="text-[10px] font-black opacity-60 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
+                        <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
+                        <p className="text-[9px] font-bold opacity-60 mt-4 uppercase">Tỷ suất: {reportData.revenue > 0 ? ((reportData.profit / reportData.revenue) * 100).toFixed(1) : 0}%</p>
+                     </div>
+                     <div className="absolute bottom-0 right-0 p-6 opacity-20">
+                        <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"></path></svg>
+                     </div>
                   </div>
-                  {role === 'admin' && (
-                    <div className="p-7 bg-emerald-600 rounded-[2rem] text-white shadow-xl animate-in zoom-in-95 duration-700">
-                      <p className="text-[10px] font-black opacity-40 uppercase mb-1 tracking-[0.2em]">LỢI NHUẬN RÒNG</p>
-                      <h3 className="text-3xl font-black tracking-tight">{formatCurrency(reportData.profit)}</h3>
-                    </div>
+                )}
+             </div>
+
+             {/* Product Performance Analytics */}
+             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+                      HIỆU SUẤT SẢN PHẨM
+                   </h3>
+                </div>
+                
+                <div className="space-y-8">
+                  {reportData.summary.length === 0 ? (
+                    <div className="text-center py-10 opacity-20 font-black text-[9px] uppercase tracking-[0.3em]">Chưa có dữ liệu giao dịch</div>
+                  ) : (
+                    reportData.summary.slice(0, 10).map((item, idx) => {
+                      const share = (item.rev / reportData.revenue) * 100;
+                      return (
+                        <div key={idx} className="space-y-3">
+                           <div className="flex justify-between items-end">
+                              <div className="flex-1 min-w-0 mr-4">
+                                 <p className="font-black text-slate-800 text-[11px] uppercase truncate">{item.name}</p>
+                                 <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">SL: {item.qty} | {formatCurrency(item.rev)}</p>
+                              </div>
+                              <span className="text-[10px] font-black text-indigo-600">{share.toFixed(1)}%</span>
+                           </div>
+                           <div className="w-full h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                              <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000 ease-out" style={{ width: `${share}%` }}></div>
+                           </div>
+                        </div>
+                      )
+                    })
                   )}
                 </div>
+             </div>
 
-                {/* Phần Tổng hợp Sản phẩm (Mới bổ sung) */}
-                <div className="space-y-4 mb-10">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">TỔNG HỢP THEO SẢN PHẨM</h3>
-                  <div className="bg-slate-50 rounded-[2rem] overflow-hidden border border-slate-100">
-                    {reportData.summary.length === 0 ? (
-                      <div className="p-8 text-center opacity-20 font-black text-[9px] uppercase tracking-widest">Không có dữ liệu tổng hợp</div>
-                    ) : (
-                      <div className="divide-y divide-slate-200/50">
-                        {reportData.summary.map((item, idx) => (
-                          <div key={idx} className="p-4 flex items-center justify-between hover:bg-white transition-colors">
-                            <div className="flex-1 min-w-0 pr-4">
-                              <p className="font-black text-slate-800 text-[11px] uppercase truncate">{item.name}</p>
-                              <div className="flex gap-2 mt-1">
-                                <span className="text-[8px] font-bold text-slate-400 uppercase">Doanh thu: <span className="text-indigo-600">{formatCurrency(item.rev)}</span></span>
-                                {role === 'admin' && <span className="text-[8px] font-bold text-slate-400 uppercase">Lãi: <span className="text-emerald-600">{formatCurrency(item.profit)}</span></span>}
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="bg-indigo-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-sm shadow-indigo-200">{item.qty} SP</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+             {/* Detailed Transaction List */}
+             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                      CHI TIẾT GIAO DỊCH ({reportData.count})
+                   </h3>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-4">LỊCH SỬ GIAO DỊCH ({reportData.count})</h3>
                   {reportData.sales.length === 0 ? (
-                    <div className="text-center py-10 opacity-20 font-black text-[10px] uppercase">Không tìm thấy giao dịch nào</div>
+                    <div className="text-center py-10 opacity-20 font-black text-[9px] uppercase">Trống</div>
                   ) : (
                     reportData.sales.map(s => (
-                      <div key={s.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-3 shadow-sm hover:border-indigo-200 transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-black text-slate-800 text-[11px] uppercase leading-tight">{s.productName}</h4>
-                            <p className="text-[9px] text-slate-400 font-bold mt-1">{new Date(s.timestamp).toLocaleString('vi-VN')}</p>
+                      <div key={s.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 group hover:border-indigo-200 transition-all">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-black text-slate-800 text-[11px] uppercase leading-tight truncate">{s.productName}</h4>
+                            <p className="text-[8px] text-slate-400 font-bold mt-1 uppercase">{new Date(s.timestamp).toLocaleDateString('vi-VN')} • {new Date(s.timestamp).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}</p>
                           </div>
-                          <span className="text-indigo-600 font-black text-xs">{formatCurrency(s.totalAmount)}</span>
+                          <div className="text-right">
+                             <p className="text-indigo-600 font-black text-xs">{formatCurrency(s.totalAmount)}</p>
+                             <span className="text-[8px] font-black text-slate-300 uppercase">x{s.quantity}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-end border-t border-slate-200/50 pt-2">
-                          <div className="flex flex-col gap-0.5">
-                            <p className="text-[8px] font-black text-slate-400 uppercase">Khách: <span className="text-slate-600">{s.customer?.fullName || "Khách lẻ"}</span></p>
-                            {s.customer?.idCard && <p className="text-[8px] font-black text-slate-400 uppercase">CCCD: <span className="text-slate-600">{s.customer.idCard}</span></p>}
-                          </div>
-                          <p className="text-[9px] font-black text-slate-500">SL: <span className="bg-white px-2 py-0.5 rounded-full border border-slate-200">{s.quantity}</span></p>
+                        <div className="flex justify-between items-center pt-3 border-t border-slate-200/50">
+                           <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center border border-slate-200 text-slate-400">
+                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeWidth="2.5"></path></svg>
+                              </div>
+                              <p className="text-[9px] font-black text-slate-600 uppercase">{s.customer?.fullName || "Khách vãng lai"}</p>
+                           </div>
+                           {role === 'admin' && (
+                              <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                 LÃI: {formatCurrency((s.sellingPrice - s.purchasePrice) * s.quantity)}
+                              </span>
+                           )}
                         </div>
                       </div>
                     ))
