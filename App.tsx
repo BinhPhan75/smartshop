@@ -156,7 +156,7 @@ const App: React.FC = () => {
           setView('dashboard');
           setEnteredPin('');
         } else {
-          alert('Mã PIN sai! Mặc định là 1234');
+          alert('Mã PIN sai! Vui lòng đăng nhập lại');
           setEnteredPin('');
         }
       }
