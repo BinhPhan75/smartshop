@@ -229,7 +229,7 @@ const App: React.FC = () => {
             <button onClick={() => setEnteredPin('')} className="col-span-2 w-full h-full bg-red-500/10 hover:bg-red-500/20 active:scale-95 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-400 transition-all border border-red-500/20">XÓA</button>
           </div>
         </div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Vui lòng nhập mã PIN (1234) để truy cập</p>
+        <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Vui lòng nhập mã PIN để truy cập</p>
       </div>
     </div>
   );
