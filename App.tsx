@@ -156,7 +156,7 @@ const App: React.FC = () => {
           setView('dashboard');
           setEnteredPin('');
         } else {
-          alert('Mã PIN sai! Vui lòng đăng nhập lại');
+          alert('Mã PIN sai! Mặc định là 1234');
           setEnteredPin('');
         }
       }
@@ -171,26 +171,6 @@ const App: React.FC = () => {
   };
 
   const formatCurrency = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-
-  // Aggressive auto-scaling logic for monetary values
-  const getDynamicFontSize = (text: string, type: 'dashboard' | 'report' = 'report') => {
-    const len = text.length;
-    if (type === 'dashboard') {
-      if (len > 25) return 'text-lg';
-      if (len > 20) return 'text-xl';
-      if (len > 16) return 'text-2xl';
-      if (len > 12) return 'text-3xl';
-      return 'text-4xl';
-    } else {
-      // Very aggressive for small report cards
-      if (len > 25) return 'text-[10px]';
-      if (len > 22) return 'text-[12px]';
-      if (len > 18) return 'text-sm';
-      if (len > 15) return 'text-base';
-      if (len > 12) return 'text-xl';
-      return 'text-2xl';
-    }
-  };
 
   if (isLoading) return (
     <div className="min-h-screen bg-indigo-700 flex flex-col items-center justify-center text-white p-10 text-center">
@@ -264,7 +244,7 @@ const App: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <button onClick={() => setIsScanning(true)} className="bg-white/10 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all backdrop-blur">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
             </button>
           </div>
         </div>
@@ -280,9 +260,9 @@ const App: React.FC = () => {
             
             <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 rounded-[3rem] p-10 text-white shadow-[0_30px_60px_-15px_rgba(79,70,229,0.5)] relative overflow-hidden group">
                <div className="relative z-10">
-                  <p className="text-[10px] font-black opacity-60 uppercase mb-2 tracking-widest">{role === 'admin' ? 'GIÁ TRỊ TỒN KHO' : 'TỔNG SẢN PHẨM'}</p>
-                  <h2 className={`font-black mb-10 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis ${role === 'admin' ? getDynamicFontSize(formatCurrency(stats.investment), 'dashboard') : 'text-4xl'}`}>
-                    {role === 'admin' ? formatCurrency(stats.investment) : `${stats.totalItems} MÓN`}
+                  <p className="text-[10px] font-black opacity-60 uppercase mb-2 tracking-widest">GIÁ TRỊ TỒN KHO</p>
+                  <h2 className={`font-black mb-10 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis flex items-baseline gap-1 text-[clamp(24px,8vw,36px)]`}>
+                    {formatCurrency(stats.investment)}
                   </h2>
                   <div className="flex gap-10">
                     <div className="space-y-1">
@@ -376,24 +356,24 @@ const App: React.FC = () => {
                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-                  <div className="p-6 bg-indigo-600 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[120px] overflow-hidden px-2 text-center transition-transform active:scale-[0.98]">
-                    <p className="text-[9px] font-black opacity-60 uppercase mb-2 tracking-widest whitespace-nowrap">TỔNG DOANH THU</p>
-                    <h3 className={`font-black tracking-tighter whitespace-nowrap leading-none ${getDynamicFontSize(formatCurrency(reportData.revenue), 'report')}`}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-12">
+                  <div className="px-1 py-6 bg-indigo-600 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[110px] text-center">
+                    <p className="text-[9px] font-black opacity-60 uppercase mb-1 tracking-widest whitespace-nowrap">TỔNG DOANH THU</p>
+                    <h3 className="font-black whitespace-nowrap flex items-center justify-center w-full overflow-hidden text-[clamp(10px,5vw,26px)] leading-none">
                       {formatCurrency(reportData.revenue)}
                     </h3>
                   </div>
                   {role === 'admin' && (
                     <>
-                      <div className="p-6 bg-emerald-600 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[120px] overflow-hidden px-2 text-center transition-transform active:scale-[0.98]">
-                        <p className="text-[9px] font-black opacity-60 uppercase mb-2 tracking-widest whitespace-nowrap">LỢI NHUẬN RÒNG</p>
-                        <h3 className={`font-black tracking-tighter whitespace-nowrap leading-none ${getDynamicFontSize(formatCurrency(reportData.profit), 'report')}`}>
+                      <div className="px-1 py-6 bg-emerald-600 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[110px] text-center">
+                        <p className="text-[9px] font-black opacity-60 uppercase mb-1 tracking-widest whitespace-nowrap">LỢI NHUẬN RÒNG</p>
+                        <h3 className="font-black whitespace-nowrap flex items-center justify-center w-full overflow-hidden text-[clamp(10px,5vw,26px)] leading-none">
                           {formatCurrency(reportData.profit)}
                         </h3>
                       </div>
-                      <div className="p-6 bg-slate-900 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[120px] overflow-hidden px-2 text-center transition-transform active:scale-[0.98]">
-                        <p className="text-[9px] font-black opacity-60 uppercase mb-2 tracking-widest whitespace-nowrap">TỔNG GIÁ VỐN</p>
-                        <h3 className={`font-black tracking-tighter whitespace-nowrap leading-none ${getDynamicFontSize(formatCurrency(reportData.cost), 'report')}`}>
+                      <div className="px-1 py-6 bg-slate-900 rounded-[2.5rem] text-white shadow-lg flex flex-col items-center justify-center min-h-[110px] text-center">
+                        <p className="text-[9px] font-black opacity-60 uppercase mb-1 tracking-widest whitespace-nowrap">TỔNG GIÁ VỐN</p>
+                        <h3 className="font-black whitespace-nowrap flex items-center justify-center w-full overflow-hidden text-[clamp(10px,5vw,26px)] leading-none">
                           {formatCurrency(reportData.cost)}
                         </h3>
                       </div>
