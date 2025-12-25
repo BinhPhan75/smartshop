@@ -156,7 +156,7 @@ const App: React.FC = () => {
           setView('dashboard');
           setEnteredPin('');
         } else {
-          alert('Mã PIN sai! Vui lòng nhập lại.');
+          alert('Mã PIN sai! Mặc định là 1234');
           setEnteredPin('');
         }
       }
@@ -229,7 +229,7 @@ const App: React.FC = () => {
             <button onClick={() => setEnteredPin('')} className="col-span-2 w-full h-full bg-red-500/10 hover:bg-red-500/20 active:scale-95 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-400 transition-all border border-red-500/20">XÓA</button>
           </div>
         </div>
-        <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Vui lòng nhập mã PIN để truy cập</p>
+        <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Vui lòng nhập mã PIN (1234) để truy cập</p>
       </div>
     </div>
   );
@@ -244,7 +244,7 @@ const App: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <button onClick={() => setIsScanning(true)} className="bg-white/10 p-3 rounded-2xl border border-white/10 active:scale-90 transition-all backdrop-blur">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
             </button>
           </div>
         </div>
@@ -569,34 +569,34 @@ const App: React.FC = () => {
       }} onCancel={() => setView('dashboard')} />}
 
       {isSelling && selectedProduct && (
-        <div className="fixed inset-0 z-[1000] bg-slate-900/90 flex items-center justify-center p-8 backdrop-blur-xl animate-in fade-in">
-            <div className="bg-white w-full max-w-sm rounded-[4rem] overflow-hidden flex flex-col relative animate-in zoom-in-95 shadow-[0_50px_100px_rgba(0,0,0,0.5)]">
-                <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                   <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">THANH TOÁN</h3>
-                   <button onClick={() => setIsSelling(false)} className="text-slate-300 p-2 active:rotate-90 transition-all"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        <div className="fixed inset-0 z-[1000] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-xl animate-in fade-in">
+            <div className="bg-white w-full max-w-sm rounded-[3rem] overflow-hidden flex flex-col relative animate-in zoom-in-95 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                   <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">THANH TOÁN</h3>
+                   <button onClick={() => setIsSelling(false)} className="text-slate-300 p-2 active:rotate-90 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
-                <div className="p-10 space-y-10 text-center">
-                    <div className="space-y-2">
-                       <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Tên hàng</p>
-                       <h4 className="text-xl font-black uppercase text-slate-900 leading-tight">{selectedProduct.name}</h4>
+                <div className="p-6 space-y-6 text-center">
+                    <div className="space-y-1">
+                       <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Tên hàng</p>
+                       <h4 className="text-lg font-black uppercase text-slate-900 leading-tight line-clamp-2 px-2">{selectedProduct.name}</h4>
                     </div>
-                    <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 flex flex-col items-center shadow-inner">
-                        <div className="flex items-center gap-10 mb-10">
-                            <button onClick={() => setSellQuantity(Math.max(1, sellQuantity - 1))} className="w-16 h-16 bg-white rounded-2xl text-3xl font-black shadow-xl border border-slate-100 active:scale-90 transition-all">-</button>
-                            <span className="text-6xl font-black w-24 tabular-nums text-slate-900">{sellQuantity}</span>
-                            <button onClick={() => setSellQuantity(Math.min(selectedProduct.stock, sellQuantity + 1))} className="w-16 h-16 bg-white rounded-2xl text-3xl font-black shadow-xl border border-slate-100 active:scale-90 transition-all">+</button>
+                    <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 flex flex-col items-center shadow-inner">
+                        <div className="flex items-center gap-6 mb-6">
+                            <button onClick={() => setSellQuantity(Math.max(1, sellQuantity - 1))} className="w-12 h-12 bg-white rounded-xl text-2xl font-black shadow-lg border border-slate-100 active:scale-90 transition-all">-</button>
+                            <span className="text-4xl font-black w-16 tabular-nums text-slate-900">{sellQuantity}</span>
+                            <button onClick={() => setSellQuantity(Math.min(selectedProduct.stock, sellQuantity + 1))} className="w-12 h-12 bg-white rounded-xl text-2xl font-black shadow-lg border border-slate-100 active:scale-90 transition-all">+</button>
                         </div>
-                        <div className="pt-8 border-t border-slate-200 w-full">
-                           <p className="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">TỔNG THANH TOÁN</p>
-                           <p className="text-4xl font-black text-indigo-600 tracking-tighter">{formatCurrency(selectedProduct.sellingPrice * sellQuantity)}</p>
+                        <div className="pt-4 border-t border-slate-200 w-full">
+                           <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">TỔNG THANH TOÁN</p>
+                           <p className="text-2xl font-black text-indigo-600 tracking-tighter">{formatCurrency(selectedProduct.sellingPrice * sellQuantity)}</p>
                         </div>
                     </div>
-                    <div className="space-y-4 text-left">
-                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">THÔNG TIN KHÁCH HÀNG *</label>
-                       <input type="text" placeholder="Họ và tên..." value={customer.fullName} onChange={e => setCustomer({...customer, fullName: e.target.value})} className="w-full p-6 bg-slate-50 border border-slate-200 rounded-[2rem] font-bold text-sm outline-none focus:ring-4 focus:ring-indigo-600/10 shadow-sm" />
-                       <input type="text" placeholder="Số CCCD (tùy chọn)..." value={customer.idCard} onChange={e => setCustomer({...customer, idCard: e.target.value})} className="w-full p-6 bg-slate-50 border border-slate-200 rounded-[2rem] font-bold text-sm outline-none focus:ring-4 focus:ring-indigo-600/10 shadow-sm" />
+                    <div className="space-y-3 text-left">
+                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-4">KHÁCH HÀNG *</label>
+                       <input type="text" placeholder="Họ và tên..." value={customer.fullName} onChange={e => setCustomer({...customer, fullName: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-xs outline-none focus:ring-4 focus:ring-indigo-600/10" />
+                       <input type="text" placeholder="Số CCCD (tùy chọn)..." value={customer.idCard} onChange={e => setCustomer({...customer, idCard: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-xs outline-none focus:ring-4 focus:ring-indigo-600/10" />
                     </div>
-                    <button onClick={handleConfirmSale} className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] shadow-2xl active:scale-95 transition-all">HOÀN TẤT GIAO DỊCH</button>
+                    <button onClick={handleConfirmSale} className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all">HOÀN TẤT GIAO DỊCH</button>
                 </div>
             </div>
         </div>
