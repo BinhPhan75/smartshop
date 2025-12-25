@@ -29,7 +29,7 @@ export const searchProductByImage = async (
     const imageData = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest', 
+      model: 'gemini-3-flash-preview', 
       contents: [{
         parts: [
           { text: prompt },

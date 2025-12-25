@@ -1,5 +1,5 @@
 {
-  "name": "Copy of Copy of Copy of SmartShop - Quản lý Kho Thông Minh",
+  "name": "Copy of SmartShop - Quản lý Kho Thông Minh (ban luu)",
   "description": "Ứng dụng quản lý sản phẩm chuyên nghiệp với tính năng nhận diện sản phẩm bằng Camera (Visual Search) sử dụng AI Gemini.",
   "requestFramePermissions": [
     "camera"

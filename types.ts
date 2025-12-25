@@ -29,7 +29,7 @@ export interface Sale {
   customer?: CustomerInfo;
 }
 
-export type ViewState = 'dashboard' | 'list' | 'add' | 'scan' | 'detail' | 'settings' | 'reports';
+export type ViewState = 'login' | 'dashboard' | 'list' | 'add' | 'scan' | 'detail' | 'settings' | 'reports';
 export type UserRole = 'admin' | 'user';
 
 export interface ScanResult {
