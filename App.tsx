@@ -463,13 +463,13 @@ const App: React.FC = () => {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                       XUẤT FILE SAO LƯU (.JSON)
                     </button>
-                    <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Dữ liệu được tự động đồng bộ lên Cloud của DuyHaLam</p>
+                    <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Xuất file sao lưu dữ liệu về điện thoại</p>
                   </div>
                </section>
              )}
 
              <div className="pt-10 border-t border-slate-100 text-center">
-                <p className="text-[9px] font-black text-slate-200 uppercase tracking-[0.5em]">VERSION 5.0.0 PROFESSIONAL</p>
+                <p className="text-[9px] font-black text-slate-200 uppercase tracking-[0.5em]">VERSION 1.0 BINHPHAN</p>
              </div>
           </div>
         )}
