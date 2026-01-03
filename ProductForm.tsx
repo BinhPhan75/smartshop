@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Product } from './types';
 import CameraView from './CameraView';
 import { searchProductByImage } from './geminiService';
@@ -22,6 +22,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
   const [showCamera, setShowCamera] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +38,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
     });
   };
 
-  const handleCapture = async (base64: string) => {
+  const processImage = async (base64: string) => {
     setImageUrl(base64);
-    setShowCamera(false);
-    
     if (!name.trim()) {
       setIsAiProcessing(true);
       try {
@@ -52,6 +51,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
       } finally {
         setIsAiProcessing(false);
       }
+    }
+  };
+
+  const handleCapture = async (base64: string) => {
+    setShowCamera(false);
+    await processImage(base64);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        processImage(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -68,29 +84,54 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, onCancel, initialData
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="relative cursor-pointer group" onClick={() => setShowCamera(true)}>
-            {imageUrl ? (
-              <div className="relative">
-                <img src={imageUrl} alt="Preview" className="w-full h-56 object-cover rounded-3xl shadow-inner border border-slate-100" />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <span className="bg-white/90 backdrop-blur px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 shadow-xl">Đổi ảnh</span>
+          <div className="space-y-4">
+            <div className="relative group overflow-hidden rounded-3xl">
+              {imageUrl ? (
+                <div className="relative">
+                  <img src={imageUrl} alt="Preview" className="w-full h-64 object-cover rounded-3xl shadow-inner border border-slate-100" />
                 </div>
-              </div>
-            ) : (
-              <div className="w-full h-56 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 font-black uppercase text-[10px] group-hover:bg-slate-100/50 transition-colors">
-                <svg className="w-10 h-10 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                <span>Chạm để chụp ảnh</span>
-              </div>
-            )}
-            {isAiProcessing && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center z-10 animate-in fade-in">
-                <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mb-2"></div>
-                <span className="text-[9px] font-black text-indigo-600 uppercase tracking-tighter">AI đang phân tích...</span>
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-64 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 font-black uppercase text-[10px]">
+                  <svg className="w-12 h-12 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h14a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  <span>Chưa có ảnh sản phẩm</span>
+                </div>
+              )}
+              {isAiProcessing && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center z-10 animate-in fade-in">
+                  <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <span className="text-[9px] font-black text-indigo-600 uppercase tracking-tighter">AI đang phân tích...</span>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                type="button"
+                onClick={() => setShowCamera(true)}
+                className="flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-lg"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                CHỤP ẢNH
+              </button>
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center justify-center gap-2 py-4 bg-slate-100 text-slate-700 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-slate-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                TẢI ẢNH LÊN
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                className="hidden" 
+                accept="image/*" 
+              />
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 pt-4">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Tên mặt hàng</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-600 outline-none font-bold text-slate-800 transition-all" placeholder="Ví dụ: Nước ngọt Coca-Cola 330ml" required />

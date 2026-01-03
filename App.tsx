@@ -10,7 +10,8 @@ import {
   saveSaleToDB, 
   getSalesFromDB, 
   saveAllSalesToDB,
-  exportBackup
+  exportBackup,
+  deleteProductFromDB
 } from './storageService';
 
 const removeAccents = (str: string): string => {
@@ -32,6 +33,7 @@ const App: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
   const [loginRole, setLoginRole] = useState<UserRole>('user');
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   
   const [isSelling, setIsSelling] = useState(false);
   const [sellQuantity, setSellQuantity] = useState(1);
@@ -120,6 +122,20 @@ const App: React.FC = () => {
     setSelectedProduct(p);
     setSellQuantity(1);
     setIsSelling(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!isDeletingId) return;
+    
+    try {
+      await deleteProductFromDB(isDeletingId);
+      setProducts(prev => prev.filter(p => p.id !== isDeletingId));
+      setSelectedProduct(null);
+      setIsDeletingId(null);
+      setView('dashboard');
+    } catch (e) {
+      alert("Lỗi khi xóa sản phẩm khỏi cơ sở dữ liệu.");
+    }
   };
 
   const handleConfirmSale = () => {
@@ -526,9 +542,31 @@ const App: React.FC = () => {
                 <div className="space-y-4">
                   <button onClick={() => startSelling(selectedProduct)} disabled={selectedProduct.stock <= 0} className={`w-full py-7 rounded-[2rem] font-black uppercase text-sm tracking-[0.3em] shadow-[0_20px_40px_-10px_rgba(79,70,229,0.5)] transition-all active:scale-95 ${selectedProduct.stock > 0 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-300'}`}>BÁN SẢN PHẨM</button>
                   {role === 'admin' && (
-                    <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-indigo-600 transition-colors">CHỈNH SỬA THÔNG TIN</button>
+                    <div className="flex flex-col gap-2">
+                       <button onClick={() => { setIsEditing(true); setView('add'); }} className="w-full py-4 bg-slate-100 text-slate-600 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors">CHỈNH SỬA THÔNG TIN</button>
+                       <button onClick={() => setIsDeletingId(selectedProduct.id)} className="w-full py-4 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-50 rounded-[1.5rem] transition-colors">XÓA SẢN PHẨM</button>
+                    </div>
                   )}
                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeletingId && (
+        <div className="fixed inset-0 z-[10000] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+           <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 space-y-8 shadow-2xl animate-in zoom-in-95 duration-300">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-500">
+                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              </div>
+              <div className="text-center space-y-2">
+                 <h3 className="text-lg font-black uppercase text-slate-900 tracking-tight">XÁC NHẬN XÓA?</h3>
+                 <p className="text-xs text-slate-400 font-bold px-4">Bạn chắc chắn muốn xóa sản phẩm này? Mọi dữ liệu tồn kho và lịch sử liên quan sẽ biến mất vĩnh viễn.</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                 <button onClick={handleConfirmDelete} className="w-full py-5 bg-red-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all">ĐỒNG Ý XÓA</button>
+                 <button onClick={() => setIsDeletingId(null)} className="w-full py-5 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">HỦY BỎ</button>
               </div>
            </div>
         </div>

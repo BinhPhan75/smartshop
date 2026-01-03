@@ -45,6 +45,32 @@ export const saveProductsToDB = async (products: Product[]) => {
   tryCloudSync('products', products);
 };
 
+export const deleteProductFromDB = async (productId: string) => {
+  const db = await initDB();
+  
+  // 1. Xóa trong IndexedDB trước
+  const deleteFromLocal = new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_PRODUCTS, "readwrite");
+    const store = tx.objectStore(STORE_PRODUCTS);
+    const request = store.delete(productId);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+
+  await deleteFromLocal;
+
+  // 2. Xóa trên Cloud nếu online
+  if (navigator.onLine) {
+    try {
+      await supabase.from('products').delete().eq('id', productId);
+    } catch (e) {
+      console.error("Cloud delete error:", e);
+    }
+  }
+  
+  return true;
+};
+
 export const saveSaleToDB = async (sale: Sale) => {
   const db = await initDB();
   const tx = db.transaction(STORE_SALES, "readwrite");
